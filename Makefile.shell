@@ -1,0 +1,19 @@
+TARGET   = shell
+CLASSES  = sqlite3
+SOURCE   = $(TARGET).c $(CLASSES:%=%.c)
+OBJECTS  = $(TARGET).o $(CLASSES:%=%.o)
+HFILES   = $(CLASSES:%=%.h)
+OPT      = -Os -Wall
+CFLAGS   = $(OPT) -I. -DSQLITE_OMIT_LOAD_EXTENSION
+LDFLAGS  = -lpthread -lm
+CCC      = gcc
+
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CCC) $(OPT) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
+
+clean:
+	rm -f $(OBJECTS) *~ \#*\# $(TARGET)
+
+$(OBJECTS): $(HFILES)
