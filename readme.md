@@ -38,44 +38,40 @@ are not part of the SQL standard.
 CREATE/DROP TABLE
 -----------------
 
-The only data structure supported by SQL are tables which
+Tables are the only data structure supported by SQL which
 have columns that represent a unique type and rows which
 represent data elements.
-
-Columns may have constraints such as (NOT NULL), (UNIQUE),
-or custom restrictions (CHECK (expression)). Column
-constraints also allow you to define a custom sort order
-(COLLATE collation\_name) or assign a default value (DEFAULT
-value).
 
 To create/drop a table.
 
 	CREATE TABLE table_name
 	(
-	    column_name column_type column_constraints,
-	    [...]
+	    column_name column_type column_constraints [, ...]
 	);
 
-	CREATE TEMP TABLE table_name AS SELECT query_statement;
+	column_type:
+		INTEGER: A signed integer number from 1-8 bytes
+		FLOAT: An 8-byte floating point number
+		TEXT: A variable length string
+		BLOB: A Binary Length Object
+		NULL: A NULL type does not hold a value
+
+	column_constraints:
+	    constraint [...]
+
+	constraint:
+		PRIMARY KEY: Columns used to index the table
+		REFERENCES table[.column]: A foreign key reference
+		UNIQUE: Require each row to be unique
+		NOT NULL: Each row must be unique
+
+	CREATE [TEMP] TABLE table_name AS SELECT query_statement;
 
 	DROP TABLE table_name;
 
-The column\_type include. Internally SQLite treats the type
-as an affinity which it uses to perform type conversions as
+Note that internally SQLite treats the column_type as an
+affinity which it uses to perform type conversions as
 needed.
-
-	NULL: A NULL type does not hold a value
-	INTEGER: A signed integer number from 1-8 bytes
-	FLOAT: An 8-byte floating point number
-	TEXT: A variable length string
-	BLOB: A Binary Length Object
-
-The column\_constraints include.
-
-	PRIMARY KEY: Columns used to index the table
-	REFERENCES table[.column]: A foreign key reference
-	UNIQUE: Require each row to be unique
-	NOT NULL: Each row must be unique
 
 Note that if an INTEGER PRIMARY key is not defined then
 SQLite will create a hidden ROWID column for this purpose.
@@ -92,8 +88,6 @@ command for more details.
 Note that there are additional column constraints that are
 not listed above which may not work well when combined
 with the C API.
-
-Note that the last row must not end with a comma.
 
 ALTER TABLE
 -----------
@@ -124,25 +118,28 @@ CREATE/DROP INDEX
 Indexes are used by SQLite to optimize database performance
 by indexing one or more columns of a table. Some indexes
 are created automatically by SQLite for PRIMARY KEY and
-UNIQUE columns.
+UNIQUE columns. The user may also optionally define indexes
+for commands that it expects to issue. The following factors
+should be considered before creating multicolumn indexes.
+The column order is very important because the data is
+sorted by column in the order specified by the index. In
+order to utilize a multicolumn index, a query must contain
+conditions that are able to utilize the sort keys in the
+same order defined by the index. A query may use a subset of
+the available index columns. A single multicolumn index is
+different than multiple single-column indexes. A query
+optimizer may only utilize a single index to compute the
+result (with the exception of a series of OR conditions).
+The query optimizer automatically chooses which indexes it
+will use but these choices are opaque to the user and may
+not be what was expected. The ANALYZE command can be used to
+provide statistical imformation on the query optimizer.
 
-The user may also optionally define indexes to optimize
-performance for commands that it expects to issue. The
-following factors should be considered before creating
-multicolumn indexes. The column order is very important
-because the data is sorted by column in the order specified
-by the index. In order to utilize a multicolumn index, a
-query must contain conditions that are able to utilize the
-sort keys in the same order defined by the index. A query
-may use a subset of the available index columns. A single
-multicolumn index is different than multiple single-column
-indexes. A query optimizer may only utilize a single index
-to compute the result (with the exception of a series of OR
-conditions). The query optimizer automatically chooses
-which indexes it will use but these choices are opaque to
-the user and may not be what was expected. The ANALYZE
-command can be used to provide statistical imformation on
-the query optimizer.
+To create/drop an index.
+
+	CREATE [UNIQUE] INDEX index_name ON table_name (column_name [, ...] );
+
+	DROP INDEX index_name;
 
 The UNIQUE flag indicates that the index will prevent
 duplicate values from being inserted into the table. The
@@ -150,12 +147,6 @@ UNIQUE flag on the index differs from the UNIQUE flag on
 the table column in two ways. It allows the UNIQUE
 constraint to be applied across multiple columns and the
 UNIQUE constraint may be removed by dropping the index.
-
-To create/drop an index.
-
-	CREATE [UNIQUE] INDEX index_name ON table_name (column_name [, ...] );
-
-	DROP INDEX index_name;
 
 INSERT/REPLACE
 --------------
@@ -196,36 +187,36 @@ SELECT
 To select data from the database.
 
 	SELECT [DISTINCT] select_heading
-	    FROM source_tables
-	    WHERE filter_expression
-	    GROUP BY grouping_expressions
-	        [HAVING filter_expressions]
-	    ORDER BY ordering_expressions
-	    LIMIT count
-	        OFFSET count
+	    [FROM source_tables]
+	    [WHERE filter_expression]
+	    [GROUP BY grouping_expressions
+	        [HAVING filter_expressions]]
+	    [ORDER BY ordering_expressions]
+	    [LIMIT count
+	        [OFFSET count]];
 
 	select_heading (expression may include ROWID or *):
-	    expression [AS column_alias] [,...]
+	    expression [AS column_alias] [, ...]
 
 	source_tables:
-	    t1 [ AS x ] CROSS JOIN t2 [ AS y ] [,...]
-	    t1 [ AS x ] JOIN t2 [ AS y ] ON conditional_expression [,...]
-	    t1 [ AS x ] JOIN t2 [ AS y ] USING ( col1 [,...] ) [,...]
-	    t1 [ AS x ] NATURAL JOIN t2 [,...]
-	    t1 [ AS x ] LEFT OUTER JOIN t2 [ AS y ] ON conditional_expression [,...]
+	    t1 [ AS x ] CROSS JOIN t2 [ AS y ] [...]
+	    t1 [ AS x ] JOIN t2 [ AS y ] ON conditional_expression [...]
+	    t1 [ AS x ] JOIN t2 [ AS y ] USING ( col1 [, ...] ) [...]
+	    t1 [ AS x ] NATURAL JOIN t2 [...]
+	    t1 [ AS x ] LEFT OUTER JOIN t2 [ AS y ] ON conditional_expression [...]
 
 	grouping_expressions:
-	    grouping_expression [COLLATE collation_name] [,...]
+	    grouping_expression [COLLATE collation_name] [, ...]
 
 	ordering_expressions:
-	    expression [COLLATE collation_name] [ASC|DESC] [,...]
+	    expression [COLLATE collation_name] [ASC|DESC] [, ...]
 
 	collation_name:
 	    BINARY | NOCASE | RTRIM
 
 A subquery allows nesting of SELECT statements as follows.
 
-	SELECT ... FROM ( SELECT ... ) AS z ...
+	SELECT ... FROM ( SELECT ... ) AS z ...;
 
 To summarize the clauses.
 
@@ -275,7 +266,7 @@ assigned. It is recommended to use table aliases.
 
 Typically a grouping\_expression will reference a
 select\_heading column\_alias. If the grouping\_expression
-involves a test value then the collation can be given to
+involves a text value then the collation can be given to
 determine which values are equivalent. A
 grouping\_expression may also reference a column\_alias from
 the result table.
