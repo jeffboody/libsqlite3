@@ -15,19 +15,19 @@ Basic Syntax
 Comments include (--) for single line and (/* */) for
 multi-line.
 
+Logic values in SQL use Three-Valued Logic (3VL) which
+include TRUE, FALSE or NULL. Boolean operators include AND,
+OR, NOT, <, <=, >=, >, =, ==, !=, <>. Additional logic
+operators include IN, LIKE, GLOB, MATCH and REGEXP.
+
+Bitwise operators include ~, |, &, <<, >>.
+
 Strings are enclosed in single quotes (' ') and
 concatenation is performed with the (||) operator. C-style
 backslash escapes are not supported.
 
 Blobs are represented by a string of hexadecimal
 characters (x'A554E59C').
-
-Bitwise operators include ~, |, &, <<, >>, AND, OR.
-
-Logic values in SQL use Three-Valued Logic (3VL) which
-include TRUE, FALSE or NULL. Boolean operators include NOT,
-<, <=, >=, >, =, ==, !=, <>. Additional logic operators
-include IN, LIKE, GLOB, MATCH and REGEXP.
 
 Columns may include fully qualified column names such as
 ([[database\_name.]table\_name.]column\_name).
