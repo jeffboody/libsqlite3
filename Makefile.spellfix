@@ -1,0 +1,19 @@
+TARGET   = spellfix.so
+CLASSES  =
+SOURCE   = $(CLASSES:%=%.c) spellfix.c
+OBJECTS  = $(SOURCE:.c=.o)
+HFILES   = $(CLASSES:%=%.h)
+OPT      = -Os -Wall
+CFLAGS   = $(OPT) -I. -fPIC
+LDFLAGS  = -shared
+CCC      = gcc
+
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CCC) $(OPT) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
+
+clean:
+	rm -f $(OBJECTS) *~ \#*\# $(TARGET)
+
+$(OBJECTS): $(HFILES)
