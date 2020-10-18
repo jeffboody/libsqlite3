@@ -275,7 +275,88 @@ evaluated on the GROUP BY output table. The WHERE clause
 cannot reference aggregate function columns while the
 HAVING clause may reference any result column.
 
+FULL TEXT SEARCH (FTS)
+----------------------
+
+The FTS module module indexes text for fast text searches.
+
+Use a virtual table to create a FTS module. Note that FTS
+modules do not support column_constraints. The rowid
+primary key is assigned automatically.
+
+	CREATE VIRTUAL TABLE tbl_name USING fts4
+	(
+	    column_name [, ...]
+	}
+
+	DROP TABLE tbl_name;
+
+To search the table use SELECT with the MATCH keyword. This
+performs a case insensitive search to match whole words.
+The search string may contain multiple words which are
+logically ANDed together. The order of words does not
+matter.
+
+	SELECT * FROM tbl_name
+		WHERE column_name MATCH 'wordA wordB';
+
+If you wish to match with all columns you may use SELECT
+with the tbl_name in the WHERE clause (e.g. where columns
+include a subject, body, etc).
+
+	SELECT * FROM tbl_name
+		WHERE tbl_name MATCH 'wordA wordB';
+
+You may also append the '*' wildcard to a word to search
+for all words with the same prefix.
+
+SPELLFIX1
+---------
+
+The spellfix1 module can be used to search a vocabulary for
+mispelled words and suggest corrections.
+
+Use a virtual table to create a spellfix module.
+
+	CREATE VIRTUAL TABLE tbl_spellfix USING spellfix1;
+
+	DROP TABLE tbl_spellfix;
+
+To populate the vocabulary from a normal table.
+
+	INSERT INTO tbl_spellfix (word)
+		SELECT word FROM vocabulary;
+
+To populate the vocabulary from a FTS table you must create
+a temporary aux table, insert the terms and then drop the
+aux table. Note that if words are spelled incorrectly in
+the FTS table then incorrect suggestions may be returned.
+
+	CREATE VIRTUAL TABLE tbl_aux USING fts4aux(tbl_name);
+
+	INSERT INTO tbl_spellfix(word)
+		SELECT term FROM tbl_aux WHERE col='*';
+
+	DROP TABLE tbl_aux;
+
+Use SELECT to spellfix a word with the top N results.
+
+	SELECT word FROM tbl_spellfix
+		WHERE word MATCH 'foo' AND top=5;
+
+You may combine FTS with spellfix by correcting each word
+in the search string with spellfix before querying FTS with
+the corrected search string.
+
+Note that the spellfix module is compiled as a run-time
+loadable extension and must be manually loaded before it
+may be used.
+
 References
 ----------
 
 Using SQLite by Jay A. Kreibich (O'Reilly)
+
+FTS Extension: https://www.sqlite.org/fts3.html
+
+Spellfix1 Extension: https://www.sqlite.org/spellfix1.html
