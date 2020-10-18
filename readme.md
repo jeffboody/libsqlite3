@@ -44,7 +44,7 @@ represent data elements.
 
 To create/drop a table.
 
-	CREATE TABLE table_name
+	CREATE TABLE tbl_name
 	(
 	    column_name column_type column_constraints [, ...]
 	);
@@ -65,9 +65,9 @@ To create/drop a table.
 		UNIQUE: Require each row to be unique
 		NOT NULL: Each row must be unique
 
-	CREATE [TEMP] TABLE table_name AS SELECT query_statement;
+	CREATE [TEMP] TABLE tbl_name AS SELECT query_statement;
 
-	DROP TABLE table_name;
+	DROP TABLE tbl_name;
 
 Note that internally SQLite treats the column_type as an
 affinity which it uses to perform type conversions as
@@ -88,16 +88,6 @@ command for more details.
 Note that there are additional column constraints that are
 not listed above which may not work well when combined
 with the C API.
-
-ALTER TABLE
------------
-
-Altering tables is primarily useful when significant
-changes are required to a table. The procedure involves
-renaming an existing table, creating a new table under the
-original name, copying data from the old table and then
-dropping the old table. New columns may also be added to
-the table.
 
 CREATE/DROP VIEW
 ----------------
@@ -137,9 +127,10 @@ provide statistical imformation on the query optimizer.
 
 To create/drop an index.
 
-	CREATE [UNIQUE] INDEX index_name ON table_name (column_name [, ...] );
+	CREATE [UNIQUE] INDEX idx_name
+		ON tbl_name (column_name [, ...] );
 
-	DROP INDEX index_name;
+	DROP INDEX idx_name;
 
 The UNIQUE flag indicates that the index will prevent
 duplicate values from being inserted into the table. The
@@ -155,13 +146,17 @@ To insert rows into a table or ignore/replace the insert if
 a duplicate row exists when the UNIQUE constraint is
 defined.
 
-	INSERT [OR IGNORE] INTO table_name (column_name [, ...]) VALUES (new_value [, ...]);
+	INSERT [OR IGNORE] INTO tbl_name (column_name [, ...])
+		VALUES (new_value [, ...]);
 
-	INSERT [OR IGNORE] INTO table_name (column_name [, ...]) SELECT query_statement;
+	INSERT [OR IGNORE] INTO tbl_name (column_name [, ...])
+		SELECT query_statement;
 
-	REPLACE INTO table_name (column_name [, ...]) VALUES (new_value [, ...]);
+	REPLACE INTO tbl_name (column_name [, ...])
+		VALUES (new_value [, ...]);
 
-	REPLACE INTO table_name (column_name [, ...]) SELECT query_statement;
+	REPLACE INTO tbl_name (column_name [, ...])
+		SELECT query_statement;
 
 Note that bulk inserts can be sped up by wrapping INSERT
 commands inside a transaction or using the shell .import
@@ -172,14 +167,15 @@ UPDATE
 
 To update row(s) in a table for one or more columns.
 
-	UPDATE table_name SET column_name=new_value [, ...] WHERE expression;
+	UPDATE tbl_name SET column_name=new_value [, ...]
+		WHERE expression;
 
 DELETE
 ------
 
 To delete rows from a table.
 
-	DELETE FROM table_name WHERE expression;
+	DELETE FROM tbl_name WHERE expression;
 
 SELECT
 ------
