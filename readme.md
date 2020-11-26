@@ -275,6 +275,59 @@ evaluated on the GROUP BY output table. The WHERE clause
 cannot reference aggregate function columns while the
 HAVING clause may reference any result column.
 
+TRANSACTIONS
+------------
+
+Transactions consist of a stack of SQL commands that can be
+processed in a batch to commit the commands. The transaction
+commit step has high overhead so it is typically important
+to batch many commands together in a single transaction to
+achieve good performance. Transactions also allows commands
+to be canceled in the event an error occurs before a task
+may be completed. Commands executed outside of transactions
+are run in auto-commit mode which causes SQLITE to wrap each
+command with an internal transaction. As a result, the
+auto-commit mode can result in low performance due to the
+high overhead of the commit step.
+
+To start a transaction.
+
+	BEGIN [ DEFERRED | IMMEDIATE | EXCLUSIVE ];
+
+The DEFERRED mode (default) causes SQLITE to acquire locks
+only when required, the IMMEDIATE mode reserves the write
+lock and the EXCLUSIVE mode reserves both read/write locks.
+Note that the transaction mode is unique to SQLITE.
+
+To commit a transaction.
+
+	END;
+
+To cancel a transaction.
+
+	ROLLBACK;
+
+To insert a save point on the transaction stack.
+
+	SAVEPOINT savepoint_name;
+
+To accept commands added since the savepoint was created
+release the savepoint. The release command only removes
+savepoint from the stack but does not modify any other
+commands which may have been added to the stack. Commands
+are not committed until the end command is processed.
+
+	RELEASE savepoint_name;
+
+To cancel commands added to the transaction stack back to
+a savepoint use the ROLLBACK TO command. The savepoint will
+remain on the transaction stack.
+
+	ROLLBACK TO savepoint_name;
+
+The ROLLBACK commands are useful if the user cancels a
+transaction or if an error occurs.
+
 FULL TEXT SEARCH (FTS)
 ----------------------
 
